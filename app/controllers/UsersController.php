@@ -6,6 +6,7 @@ use App\Core\App;
 use App\Core\Request;
 use App\Core\Router;
 use Auth;
+use Identicon\Identicon;
 use JwtHandler;
 
 class UsersController
@@ -51,6 +52,9 @@ class UsersController
                         $user[0]['Longitude'],
                         $user[0]['IDNumber'],
                         $user[0]['deleted']);
+                        $identicon = new Identicon();
+                        $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
+                        $user[0]['profilePic'] = $imgURI;
                         Router::respond(1, 200, 'You have successfuly logged in!', ['token' => $token, 'user' => $user[0]]);
                     else :
                         Router::respond(0, 422, 'Invalid Password!');
@@ -131,6 +135,9 @@ class UsersController
             $user[0]['Latitude'],
             $user[0]['deleted'],
             $user[0]['Longitude']);
+            $identicon = new Identicon();
+            $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
+            $user[0]['profilePic'] = $imgURI;
             Router::respond(1, 200, 'Fetched Successfuly', ['user' => $user[0]]);
         else :
             Router::respond(0, 500, 'Something went wrong');
@@ -207,6 +214,9 @@ class UsersController
                 $newuser[0]['Latitude'],
                 $newuser[0]['deleted'],
                 $newuser[0]['Longitude']);
+                $identicon = new Identicon();
+                $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
+                $user[0]['profilePic'] = $imgURI;
                 Router::respond(1, 201, 'Data updated Successfuly!', $newuser);
             endif;
         else :
