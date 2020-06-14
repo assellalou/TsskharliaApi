@@ -9,5 +9,8 @@ return [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
         ]
     ],
-    'jwt_secret_key' => base64_encode("YAMohammedAssallalouIEtoMoySekretnyyKlyuch99Mar5")
+    'jwt_secret_key' => base64_encode("YAMohammedAssallalouIEtoMoySekretnyyKlyuch99Mar5"),
+    'support' => [
+        'support@devwave.com'
+    ]
 ];

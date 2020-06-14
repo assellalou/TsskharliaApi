@@ -195,6 +195,10 @@ class UsersController
                     );
                 endif;
             endif;
+            if (isset($this->data['city']) && !empty($this->data['city'])) :
+                $city  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['city']))));
+                App::get('database')->modify('Users', ['City' => $city], 'UserID', $user_id);
+            endif;
             if (
                 isset($this->data['oldpassword']) &&
                 !empty($this->data['oldpassword']) &&
@@ -228,6 +232,7 @@ class UsersController
                 $newuser[0]['Latitude'],
                 $newuser[0]['Deleted'],
                 $newuser[0]['DeletionDate'],
+                $newuser[0]['LastCheck'],
                 $newuser[0]['Longitude']);
                 $identicon = new Identicon();
                 $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
@@ -277,6 +282,11 @@ class UsersController
             $result .= $interval->format("%s seconds ");
         }
         return $result;
+    }
+
+    public static function role($id)
+    {
+        return App::get('database')->selectBy('Users', ['UserID' => $id], true, ['CurrentRole'])[0]['CurrentRole'];
     }
 
     public static function isOnline($id)
