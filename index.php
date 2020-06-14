@@ -14,13 +14,7 @@ use App\Core\{Router, Request, App};
 use App\Core\Database\QueryBuilder;
 
 if (!UsersController::isConnected() && Request::uri() != 'login' && Request::uri() != 'register') {
-
-
-    $ascii = <<<ASCII
-^_^ welcome to Tsskherlia Api please read the documentation in order to get started !
-ASCII;
-
-    Router::respond(0, 401, $ascii);
+    Router::respond(0, 401, 'Unauthorized', ['Redirect' => '/login']);
     exit;
 } else {
     Router::load('app/routes.php')->direct(Request::uri(), Request::method());

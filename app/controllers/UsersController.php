@@ -6,6 +6,8 @@ use App\Core\App;
 use App\Core\Request;
 use App\Core\Router;
 use Auth;
+use DateInterval;
+use \DateTime;
 use Identicon\Identicon;
 use JwtHandler;
 
@@ -34,7 +36,7 @@ class UsersController
             else :
                 $email = trim($this->data['email']);
                 $password = $this->data['password'];
-                $user = App::get('database')->selectOne(
+                $user = App::get('database')->selectBy(
                     'Users',
                     ["Email" => $email]
                 );
@@ -51,7 +53,8 @@ class UsersController
                         $user[0]['Latitude'],
                         $user[0]['Longitude'],
                         $user[0]['IDNumber'],
-                        $user[0]['deleted']);
+                        $user[0]['DeletionDate'],
+                        $user[0]['Deleted']);
                         $identicon = new Identicon();
                         $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
                         $user[0]['profilePic'] = $imgURI;
@@ -99,7 +102,7 @@ class UsersController
                 Router::respond(0, 422, 'Your last name must be at least 3 characters long!');
                 exit;
             else :
-                $check_email = App::get('database')->selectOne(
+                $check_email = App::get('database')->selectBy(
                     'Users',
                     ['Email' => $email]
                 );
@@ -107,13 +110,14 @@ class UsersController
                     Router::respond(0, 422, 'This email already linked to an existing account');
                     exit;
                 else :
-                    App::get('database')->insert('Users', [
+                    $registredUser = App::get('database')->insert('Users', [
                         'FirstName' => htmlspecialchars(strip_tags($firstname)),
                         'LastName' => htmlspecialchars(strip_tags($lastname)),
                         'Email' => $email,
                         'Pwd' => password_hash($password, PASSWORD_DEFAULT)
                     ]);
                     Router::respond(0, 201, 'Your account has been created successfuly!', ['email' => $email]);
+                    App::get('database')->insert('Notifications', ['ToNotify' => $registredUser, 'NotifText' => 'Welcome To Tsskharlia Project! thanks for registering', 'NotifLink' => '#']);
                 endif;
             endif;
         endif;
@@ -125,15 +129,25 @@ class UsersController
         return $Auth->isAuth();
     }
 
+    public static function hasOrder()
+    {
+        $id = self::isConnected();
+        $order = App::get('database')->selectBy('Orders', ['Consumer' => $id]);
+        if ($order)
+            return true;
+        return false;
+    }
+
     public function profile()
     {
         $user_id = self::isConnected();
-        $user = App::get('database')->selectOne('Users', ['UserID' => $user_id]);
+        $user = App::get('database')->selectBy('Users', ['UserID' => $user_id]);
         if ($user) :
             unset($user[0]['Pwd'],
             $user[0]['ResetToken'],
             $user[0]['Latitude'],
-            $user[0]['deleted'],
+            $user[0]['Deleted'],
+            $user[0]['DeletionDate'],
             $user[0]['Longitude']);
             $identicon = new Identicon();
             $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
@@ -147,7 +161,7 @@ class UsersController
     public function settings()
     {
         $user_id = self::isConnected();
-        $user = App::get('database')->selectOne('Users', ['UserID' => $user_id]);
+        $user = App::get('database')->selectBy('Users', ['UserID' => $user_id]);
         $this->data = json_decode(file_get_contents("php://input"), true);
         $err = false;
         if ($user) :
@@ -208,11 +222,12 @@ class UsersController
                 endif;
             endif;
             if (!$err) :
-                $newuser = App::get('database')->selectOne('Users', ['UserID' => $user[0]['UserID']]);
+                $newuser = App::get('database')->selectBy('Users', ['UserID' => $user[0]['UserID']]);
                 unset($newuser[0]['Pwd'],
                 $newuser[0]['ResetToken'],
                 $newuser[0]['Latitude'],
-                $newuser[0]['deleted'],
+                $newuser[0]['Deleted'],
+                $newuser[0]['DeletionDate'],
                 $newuser[0]['Longitude']);
                 $identicon = new Identicon();
                 $imgURI = $identicon->getImageDataUri($user[0]['UserID']);
@@ -221,6 +236,68 @@ class UsersController
             endif;
         else :
             Router::respond(0, 500, 'Bearer Token must be provided!');
+        endif;
+    }
+
+    public function check()
+    {
+        $date = date("Y-m-d H:i:s");
+        App::get('database')->modify(
+            'Users',
+            ['LastCheck' => $date],
+            'UserID',
+            UsersController::isConnected()
+        );
+        $notifs = App::get('database')->selectBy('Notifications', ['ToNotify' => UsersController::isConnected()], false);
+        unset($notifs[0]['NotifID'],
+        $notifs[0]['ToNotify'],
+        $notifs[0]['Seen']);
+        Router::respond(1, 200, 'OK', ['Notifications' => $notifs[0]]);
+    }
+
+    public static function format_interval(DateInterval $interval)
+    {
+        $result = "";
+        if ($interval->y) {
+            $result .= $interval->format("%y years ");
+        }
+        if ($interval->m) {
+            $result .= $interval->format("%m months ");
+        }
+        if ($interval->d) {
+            $result .= $interval->format("%d days ");
+        }
+        if ($interval->h) {
+            $result .= $interval->format("%h hours ");
+        }
+        if ($interval->i) {
+            $result .= $interval->format("%i minutes ");
+        }
+        if ($interval->s) {
+            $result .= $interval->format("%s seconds ");
+        }
+        return $result;
+    }
+
+    public static function isOnline($id)
+    {
+        $user = App::get('database')->selectBy('Users', ['UserID' => $id]);
+        if ($user) :
+            $lastCheckString = strtotime($user[0]['LastCheck']);
+            $lastCheckDate = new DateTime();
+            $lastCheckDate->setTimestamp($lastCheckString);
+            $now = new DateTime();
+            $diff = $now->diff($lastCheckDate);
+            if ($diff->y || $diff->m || $diff->d || $diff->h) :
+                return false;
+            elseif ($diff->i && $diff->i > 5) :
+                return false;
+            else :
+                return true;
+            endif;
+        else :
+            Router::respond(0, 404, 'User Not Found!');
+            exit;
         endif;
     }
 }

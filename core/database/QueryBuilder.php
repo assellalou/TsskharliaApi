@@ -15,12 +15,12 @@ class QueryBuilder
 
     public function selectAll($table)
     {
-        $stmt = $this->pdo->prepare("select * from {$table} where deleted = false");
+        $stmt = $this->pdo->prepare("select * from {$table} where Deleted = false");
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function selectOne($table, $params, $options = [])
+    public function selectBy($table, $params, bool $deleted = true, $options = [])
     {
         $paramstr = '';
         foreach ($params as $key => $value) :
@@ -29,14 +29,23 @@ class QueryBuilder
         $paramstr = trim($paramstr, 'and ');
         $query = '';
         if (empty($options)) :
-            $query = sprintf(
-                'select * from %s where deleted = false and  %s',
+            $deleted ? $query = sprintf(
+                'select * from %s where Deleted = false and  %s',
+                $table,
+                $paramstr
+            ) : $query = sprintf(
+                'select * from %s where %s',
                 $table,
                 $paramstr
             );
         else :
-            $query = sprintf(
-                "select %s from %s where deleted = false and %s",
+            $deleted ? $query = sprintf(
+                "select %s from %s where Deleted = false and %s",
+                implode(', ', array_values($options)),
+                $table,
+                $paramstr
+            ) : $query = sprintf(
+                "select %s from %s where %s",
                 implode(', ', array_values($options)),
                 $table,
                 $paramstr
@@ -65,6 +74,7 @@ class QueryBuilder
         try {
             $stmt = $this->pdo->prepare($query);
             $stmt->execute($params);
+            return $this->pdo->lastInsertId();
         } catch (\Exception $e) {
             die($e->getMessage());
         }
@@ -73,7 +83,7 @@ class QueryBuilder
     public function delete($table, $column, $param)
     {
         $query = sprintf(
-            "update %s set deleted = true where %s = %s",
+            "update %s set Deleted = true where %s = %s",
             $table,
             $column,
             ':' . $column
