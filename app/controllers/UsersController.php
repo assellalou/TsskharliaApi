@@ -60,7 +60,7 @@ class UsersController
                         $user[0]['profilePic'] = $imgURI;
                         Router::respond(1, 200, 'You have successfuly logged in!', ['token' => $token, 'user' => $user[0]]);
                     else :
-                        Router::respond(0, 422, 'Invalid Password!');
+                        Router::respond(0, 422, 'Invalid Email/Password!');
                     endif;
                 else :
                     Router::respond(0, 422, 'No account linked with this email!');

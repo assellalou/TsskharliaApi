@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\App;
 use App\Core\Router;
+use DateTime;
 use Exception;
 
 class OrdersController
@@ -215,5 +216,52 @@ class OrdersController
                 endif;
             endif;
         endif;
+    }
+
+    public function delivered()
+    {
+        if (UsersController::hasOrder()) :
+            $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()])[0];
+            $DeliveryPayment = ($order['Tax'] * 55) / 100;
+            if ($order['Status'] == 'Delivering') :
+                App::get('database')->modify('Orders', [
+                    'Status' => 'Delivered',
+                    'Deleted' => 1,
+                    'DeletionDate' => date("Y-m-d H:i:s")
+                ], 'OrderID', $order['OrderID']);
+
+                App::get('database')->insert('Notifications', [
+                    'ToNotify' => UsersController::isConnected(),
+                    'NotifText' => 'Your order has come. enjoy!'
+                ]);
+                App::get('database')->insert('Notifications', [
+                    'ToNotify' => $order['Deliveryman'],
+                    'NotifText' => 'Thanks for getting the job done. your money will be there soon!'
+                ]);
+                $this->pay(
+                    $order['OrderID'],
+                    App::get('database')->selectBy('Users', ['Email' => App::get('config')['support'][0]])[0]['UserID'],
+                    $order['Deliveryman'],
+                    $DeliveryPayment
+                );
+                if (isset($this->data['stars']) && !empty($this->data['stars']) && is_numeric($this->data['stars'])) :
+                    $this->rate($order['Deliveryman'], UsersController::isConnected(), $this->data['stars']);
+                endif;
+            elseif ($order['Status'] == 'Delivered') :
+                Router::respond(0, 401, 'Your order is delivered already!');
+            else :
+                Router::respond(0, 401, 'Your order still being processed!');
+            endif;
+        else :
+            Router::respond(0, 401, 'You have no orders to take any kind of action for!');
+        endif;
+    }
+    private function rate($deliveryman, $consumer, $stars)
+    {
+        App::get('database')->insert('Rates', [
+            'Deliveryman' => $deliveryman,
+            'Consumer' => $consumer,
+            'Stars' => $stars
+        ]);
     }
 }

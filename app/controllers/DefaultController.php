@@ -10,6 +10,6 @@ class DefaultController
 
     public function home()
     {
-        Router::respond(1, 200, "need help ? head to the documentation page");
+        Router::respond(1, 200, "You are authorized! if you don't know what to do please read the documentation.");
     }
 }

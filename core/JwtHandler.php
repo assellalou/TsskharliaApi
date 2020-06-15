@@ -15,7 +15,7 @@ class JwtHandler
     {
         date_default_timezone_set('Africa/Casablanca');
         $this->issuedAt = time();
-        $this->expire = $this->issuedAt + 3000;
+        $this->expire = $this->issuedAt + 6000;
         $this->jwt_secret = App::get('config')['jwt_secret_key'];
     }
     //encoding the damned token
