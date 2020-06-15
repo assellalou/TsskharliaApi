@@ -10,3 +10,4 @@ $router->post('order/create', 'OrdersController@book');
 $router->post('order/accept', 'OrdersController@match');
 $router->post('order/bought', 'OrdersController@bought');
 $router->post('order/delivered', 'OrdersController@delivered');
+$router->post('openOrders', 'OrdersController@cityOrders');

@@ -246,6 +246,8 @@ class UsersController
 
     public function check()
     {
+        $user = App::get('database')->selectBy('Users', ['UserID' => UsersController::isConnected()])[0];
+        $notifs = App::get('database')->selectBy('Notifications', ['ToNotify' => UsersController::isConnected()], false, ['NotifID', 'NotifText', 'NotifLink']);
         $date = date("Y-m-d H:i:s");
         App::get('database')->modify(
             'Users',
@@ -253,10 +255,16 @@ class UsersController
             'UserID',
             UsersController::isConnected()
         );
-        $notifs = App::get('database')->selectBy('Notifications', ['ToNotify' => UsersController::isConnected()], false);
-        unset($notifs[0]['NotifID'],
-        $notifs[0]['ToNotify'],
-        $notifs[0]['Seen']);
+        if ($user['CurrentRole'] == 1) : //consumer
+            $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()])[0];
+            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Order' => $order]);
+        elseif ($user['CurrentRole'] == 3) : //provider
+            $ordered = App::get('database')->selectBy('Orders', ['Provider' => UsersController::isConnected()]);
+            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $ordered]);
+        else :
+            Router::respond(1, 200, 'OK', ['Notifications' => $notifs]);
+        endif;
+
         Router::respond(1, 200, 'OK', ['Notifications' => $notifs[0]]);
     }
 

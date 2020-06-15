@@ -4,7 +4,6 @@ namespace App\Controllers;
 
 use App\Core\App;
 use App\Core\Router;
-use DateTime;
 use Exception;
 
 class OrdersController
@@ -263,5 +262,20 @@ class OrdersController
             'Consumer' => $consumer,
             'Stars' => $stars
         ]);
+    }
+
+    public function cityOrders()
+    {
+        $currentUser = App::get('database')->selectBy('Users', ['UserID' => UsersController::isConnected()])[0];
+        if ($currentUser != 1) :
+            $orders = App::get('databse')->selectBy('Orders', ['City' => $currentUser['City']]);
+            $CityOrders = [];
+            foreach ($orders as $order) :
+                $CityOrders[$order['OrderID']] = $this->getOrder($order['OrderID']);
+            endforeach;
+            Router::respond(1, 200, 'OK', ['orders' => $CityOrders]);
+        else :
+            Router::respond(0, 400, 'You are neither a delivery agent');
+        endif;
     }
 }
