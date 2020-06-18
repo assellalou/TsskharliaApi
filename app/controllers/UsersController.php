@@ -265,7 +265,7 @@ class UsersController
             Router::respond(1, 200, 'OK', ['Notifications' => $notifs]);
         endif;
 
-        Router::respond(1, 200, 'OK', ['Notifications' => $notifs[0]]);
+        // Router::respond(1, 200, 'OK', ['Notifications' => $notifs[0]]); um sorry cuz
     }
 
     public static function format_interval(DateInterval $interval)
