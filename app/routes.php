@@ -11,3 +11,5 @@ $router->post('order/accept', 'OrdersController@match');
 $router->post('order/bought', 'OrdersController@bought');
 $router->post('order/delivered', 'OrdersController@delivered');
 $router->post('openOrders', 'OrdersController@cityOrders');
+$router->post('provider/items', 'OrdersController@getProviderItems');
+$router->post('providers', 'UsersController@getProviders');

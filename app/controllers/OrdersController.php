@@ -278,4 +278,15 @@ class OrdersController
             Router::respond(0, 400, 'You are neither a delivery agent');
         endif;
     }
+
+    public function getProviderItems()
+    {
+        $this->data = json_decode(file_get_contents("php://input"), true);
+        if (isset($this->data['provider']) && !empty($this->data['provider']) && is_numeric($this->data['provider'])) :
+            $stock = App::get('database')->selectBy('Stock', ['ItemProvider' => $this->data['provider']], false);
+            Router::respond(1, 200, 'OK', ['stock' => $stock]);
+        else :
+            Router::respond(0, 400, 'No provider provided !!');
+        endif;
+    }
 }

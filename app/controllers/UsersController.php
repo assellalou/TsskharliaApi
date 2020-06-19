@@ -196,8 +196,45 @@ class UsersController
                 endif;
             endif;
             if (isset($this->data['city']) && !empty($this->data['city'])) :
-                $city  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['city']))));
+                $city = htmlspecialchars(strip_tags(stripslashes(trim($this->data['city']))));
                 App::get('database')->modify('Users', ['City' => $city], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['street']) && !empty($this->data['street'])) :
+                $street = htmlspecialchars(strip_tags(stripslashes(trim($this->data['street']))));
+                App::get('database')->modify('Users', ['Street' => $street], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['building']) && !empty($this->data['building'])) :
+                $building  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['building']))));
+                App::get('database')->modify('Users', ['Building' => $building], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['housenumber']) && !empty($this->data['housenumber'])) :
+                $housenumber  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['housenumber']))));
+                App::get('database')->modify('Users', ['HouseNumber' => $housenumber], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['zipcode']) && !empty($this->data['zipcode'])) :
+                $zipcode  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['zipcode']))));
+                App::get('database')->modify('Users', ['ZipCode' => $zipcode], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['region']) && !empty($this->data['region'])) :
+                $region  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['region']))));
+                App::get('database')->modify('Users', ['Region' => $region], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['gender']) && !empty($this->data['gender'])) :
+                $gender  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['gender']))));
+                App::get('database')->modify('Users', ['Gender' => $gender], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['birthdate']) && !empty($this->data['birthdate'])) :
+                $birthdate  = date_create($this->data['birthdate']);
+                App::get('database')->modify('Users', ['Birthdate' => $birthdate], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['idnumber']) && !empty($this->data['idnumber'])) :
+                $idnumber  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['idnumber']))));
+                $cinExists = App::get('database')->selectBy('Users', ['IDNumber' => $idnumber], false);
+                if ($cinExists) {
+                    Router::respond(0, 402, 'This ID number is already linked to an account!');
+                    exit;
+                }
+                App::get('database')->modify('Users', ['IDNumber' => $idnumber], 'UserID', $user_id);
             endif;
             if (
                 isset($this->data['oldpassword']) &&
@@ -316,6 +353,17 @@ class UsersController
         else :
             Router::respond(0, 404, 'User Not Found!');
             exit;
+        endif;
+    }
+
+    public function getProviders()
+    {
+        $userCity = App::get('database')->selectBy('Users', ['UserID' => UsersController::isConnected()])[0]['City'];
+        $providers = App::get('database')->selectBy('Users', ['City' => $userCity, 'CurrentRole' => 3], true, ['UserID', 'FirstName', 'LastName']);
+        if ($providers) :
+            Router::respond(1, 200, 'OK', ['providers' => $providers]);
+        else :
+            Router::respond(0, 400, 'No providers in your area!');
         endif;
     }
 }

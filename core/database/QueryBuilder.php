@@ -51,7 +51,6 @@ class QueryBuilder
                 $paramstr
             );
         endif;
-        var_dump($query);
         try {
             $stmt = $this->pdo->prepare($query);
             foreach ($params as $key => $value) :

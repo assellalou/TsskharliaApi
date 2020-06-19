@@ -12,7 +12,7 @@ Every user regardless of it's role have one of these tokens so that it makes it 
 The *Login* route returns one token everytime you login to your account with the right credentials and it lasts 100 minutes before it expires then you'll need a new one.
 
 ## Routing :carousel_horse:
-The API has 10 routes till now they all require authorization except for the `login` and `register` routes, it also requires data to be **JSON** formated and sent throught **POST** and only that otherwise any requests will get weird error message is response :smiling_imp:
+The API has 12 routes till now they all require authorization except for the `login` and `register` routes, it also requires data to be **JSON** formated and sent throught **POST** and only that otherwise any requests will get weird error message is response :smiling_imp:
 >check `routes.php` for all available routes  
 
 **EXAMPLE** `/login`  
