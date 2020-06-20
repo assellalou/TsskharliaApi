@@ -40,7 +40,7 @@ class OrdersController
                     if ($fullItem[0]) :
                         $price += (float) $fullItem[0]['ItemPrice'] * $item['quantity'];
                         $weight += (float) $fullItem[0]['ItemWeight'] * $item['quantity'];
-                        $taxOnItem = $fullItem[0]['ItemPrice'] * 0.07;
+                        $taxOnItem = ($fullItem[0]['ItemPrice'] * (0.07 * $item['quantity']));
                     else :
                         Router::respond(0, 400, 'Bad Request');
                         exit;
