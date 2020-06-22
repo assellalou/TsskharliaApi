@@ -26,7 +26,7 @@ class QueryBuilder
         foreach ($params as $key => $value) :
             $paramstr = $paramstr . "{$key} = :{$key} and ";
         endforeach;
-        $paramstr = trim($paramstr, 'and ');
+        // $paramstr = trim($paramstr, ' and ');
         $query = '';
         if (empty($options)) :
             $deleted ? $query = sprintf(
@@ -51,6 +51,7 @@ class QueryBuilder
                 $paramstr
             );
         endif;
+        $query = $query . '1=1';
         try {
             $stmt = $this->pdo->prepare($query);
             foreach ($params as $key => $value) :

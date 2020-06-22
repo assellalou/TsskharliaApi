@@ -133,23 +133,30 @@ class OrdersController
             Router::respond(0, 402, 'Please require the order to match with!');
             exit;
         else :
-            $order = App::get('database')->selectBy('Orders', ['OrderID' => $this->data['order']])[0];
-            if ($order) :
-                if (!App::get('database')->selectBy('Matche', ['OrderID' => $this->data['order']], false)) :
-                    App::get('database')->insert('Matche', ['Deliveryman' => UsersController::isConnected(), 'Consumer' => $order['Consumer'], 'OrderID' => $this->data['order']]);
-                    App::get('database')->modify('Orders', ['Status' => 'Buying', 'Public' => 0, 'Deliveryman' => UsersController::isConnected()], 'OrderID', $this->data['order']);
-                    App::get('database')->insert('Notifications', ['ToNotify' => $order['Consumer'], 'NotifText' => 'Your order just got someone to get it done!']);
-                    $matchedOrder =  $this->getOrder($this->data['order']);
-                    Router::respond(1, 201, 'You have been accepted to deliver this order. Head to the provider now!', ['order' => $matchedOrder]);
-                    exit;
+            $hasOrderrunning = App::get('database')->selectBy('Orders', ['Deliveryman' => UsersController::isConnected()]);
+            if (!$hasOrderrunning) :
+
+                $order = App::get('database')->selectBy('Orders', ['OrderID' => $this->data['order']])[0];
+                if ($order) :
+                    if (!App::get('database')->selectBy('Matche', ['OrderID' => $this->data['order']], false)) :
+                        App::get('database')->insert('Matche', ['Deliveryman' => UsersController::isConnected(), 'Consumer' => $order['Consumer'], 'OrderID' => $this->data['order']]);
+                        App::get('database')->modify('Orders', ['Status' => 'Buying', 'Public' => 0, 'Deliveryman' => UsersController::isConnected()], 'OrderID', $this->data['order']);
+                        App::get('database')->insert('Notifications', ['ToNotify' => $order['Consumer'], 'NotifText' => 'Your order just got someone to get it done!']);
+                        $matchedOrder =  $this->getOrder($this->data['order']);
+                        Router::respond(1, 201, 'You have been accepted to deliver this order. Head to the provider now!', ['order' => $matchedOrder]);
+                        exit;
+                    else :
+                        Router::respond(0, 401, 'This Order just got a much! people aint waiting fella!');
+                        exit;
+                    endif;
                 else :
-                    Router::respond(0, 401, 'This Order just got a much! people aint waiting fella!');
+                    Router::respond(0, 401, 'This order doesnt exist !');
                     exit;
                 endif;
             else :
-                Router::respond(0, 500, 'Stop fucking with us!');
-                exit;
+                Router::respond(0, 401, 'Complete you running mission first !');
             endif;
+
         endif;
     }
 
