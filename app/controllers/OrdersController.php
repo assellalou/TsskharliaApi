@@ -268,7 +268,7 @@ class OrdersController
     {
         $currentUser = App::get('database')->selectBy('Users', ['UserID' => UsersController::isConnected()])[0];
         if ($currentUser != 1) :
-            $orders = App::get('databse')->selectBy('Orders', ['City' => $currentUser['City']]);
+            $orders = App::get('database')->selectBy('Orders', ['City' => $currentUser['City']]);
             $CityOrders = [];
             foreach ($orders as $order) :
                 $CityOrders[$order['OrderID']] = $this->getOrder($order['OrderID']);
