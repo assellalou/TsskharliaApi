@@ -301,6 +301,11 @@ class UsersController
         elseif ($user['CurrentRole'] == 2) : //deliverman
             $curOrder = App::get('database')->selectBy('Orders', ['Deliveryman' => UsersController::isConnected()]);
             if ($curOrder) :
+                $consumer = App::get('database')->selectBy('Users', ['UserID' => $curOrder[0]['Consumer']])[0];
+                $provider = App::get('database')->selectBy('Users', ['UserID' => $curOrder[0]['Provider']], true, ['FirstName', 'LastName', 'Phone', 'City', 'Street', 'Building', 'HouseNumber'])[0];
+                $curOrder[0]['ConsumerName'] = $consumer['FirstName'] . ' ' . $consumer['LastName'];
+                $curOrder[0]['ConsumerPhone'] = $consumer['Phone'];
+                $curOrder[0]['Provider'] = $provider;
                 Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $curOrder[0]]);
             else :
                 Router::respond(1, 200, 'OK', ['Notifications' => $notifs]);
