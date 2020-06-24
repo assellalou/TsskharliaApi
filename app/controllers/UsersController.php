@@ -281,6 +281,30 @@ class UsersController
         endif;
     }
 
+
+    public function getOrder($orderID)
+    {
+        $Order = App::get('database')->selectBy('Orders', ['OrderID' => $orderID], false);
+        $Provider =  App::get('database')->selectBy('Users', ['UserID' => $Order[0]['Provider']])[0];
+        $Consumer = App::get('database')->selectBy('Users', ['UserID' => $Order[0]['Consumer']])[0];
+        if ($Order[0]['Deliveryman']) :
+            $Deliveryman = App::get('database')->selectBy('Users', ['UserID' => $Order[0]['Deliveryman']])[0];
+        else :
+            $Deliveryman = null;
+        endif;
+        unset($Order[0]['Deleted'],
+        $Order[0]['DeletionDate']);
+        $Order[0]['Deliveryman'] = $Deliveryman ? " {$Deliveryman['FirstName']} {$Deliveryman['LastName']}" : null;
+        $Order[0]['Consumer'] = "{$Consumer['FirstName']} {$Consumer['LastName']}";
+        $Order[0]['Provider'] = "{$Provider['FirstName']} {$Provider['LastName']}";
+        $items = App::get('database')->selectBy('OrderedSupplies', ['OrderNumber' => $orderID]);
+        foreach ($items as $key => $value) :
+            $Order[0]['Items'][$key] = App::get('database')->selectBy('Stock', ['ItemID' => $value['ItemNumber']], false)[0];
+            $Order[0]['Items'][$key]['ItemQuantity'] = $value['Quantity'];
+        endforeach;
+        return $Order[0];
+    }
+
     public function check()
     {
         $user = App::get('database')->selectBy('Users', ['UserID' => UsersController::isConnected()])[0];
@@ -296,8 +320,16 @@ class UsersController
             $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()])[0];
             Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Order' => $order]);
         elseif ($user['CurrentRole'] == 3) : //provider
+            $orderedItems = [];
             $ordered = App::get('database')->selectBy('Orders', ['Provider' => UsersController::isConnected()]);
-            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $ordered]);
+            if ($ordered) :
+                foreach ($ordered as $ord) :
+                    $orderedItems[$ord['OrderID']] = $this->getOrder($ord['OrderID']);
+                endforeach;
+            else :
+                Router::respond(1, 200, 'OK', ['Notifications' => $notifs]);
+            endif;
+            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $orderedItems]);
         elseif ($user['CurrentRole'] == 2) : //deliverman
             $curOrder = App::get('database')->selectBy('Orders', ['Deliveryman' => UsersController::isConnected()]);
             if ($curOrder) :
