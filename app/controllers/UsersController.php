@@ -223,9 +223,21 @@ class UsersController
                 $gender  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['gender']))));
                 App::get('database')->modify('Users', ['Gender' => $gender], 'UserID', $user_id);
             endif;
-            if (isset($this->data['birthdate']) && !empty($this->data['birthdate'])) :
-                $birthdate  = date_create($this->data['birthdate']);
-                App::get('database')->modify('Users', ['Birthdate' => $birthdate], 'UserID', $user_id);
+            if (isset($this->data['phone']) && !empty($this->data['phone']) && is_numeric($this->data['phone'])) :
+                $phone = htmlspecialchars(strip_tags(stripslashes(trim($this->data['phone']))));
+                App::get('database')->modify('Users', ['Phone' => $phone], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['birthyear']) && !empty($this->data['birthyear']) && is_numeric($this->data['phone'])) :
+                $birthyear = htmlspecialchars(strip_tags(stripslashes(trim($this->data['birthyear']))));
+                App::get('database')->modify('Users', ['BirthYear' => $birthyear], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['birthmonth']) && !empty($this->data['birthmonth']) && is_numeric($this->data['phone'])) :
+                $birthmonth = htmlspecialchars(strip_tags(stripslashes(trim($this->data['birthmonth']))));
+                App::get('database')->modify('Users', ['BirthMonth' => $birthmonth], 'UserID', $user_id);
+            endif;
+            if (isset($this->data['birthday']) && !empty($this->data['birthday']) && is_numeric($this->data['phone'])) :
+                $birthday = htmlspecialchars(strip_tags(stripslashes(trim($this->data['birthday']))));
+                App::get('database')->modify('Users', ['BirthDay' => $birthday], 'UserID', $user_id);
             endif;
             if (isset($this->data['idnumber']) && !empty($this->data['idnumber'])) :
                 $idnumber  = htmlspecialchars(strip_tags(stripslashes(trim($this->data['idnumber']))));
@@ -320,16 +332,17 @@ class UsersController
             $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()])[0];
             Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Order' => $order]);
         elseif ($user['CurrentRole'] == 3) : //provider
-            $orderedItems = [];
+
             $ordered = App::get('database')->selectBy('Orders', ['Provider' => UsersController::isConnected()]);
             if ($ordered) :
+                $orderedItems = [];
                 foreach ($ordered as $ord) :
                     $orderedItems[$ord['OrderID']] = $this->getOrder($ord['OrderID']);
                 endforeach;
+                Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $orderedItems]);
             else :
                 Router::respond(1, 200, 'OK', ['Notifications' => $notifs]);
             endif;
-            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $orderedItems]);
         elseif ($user['CurrentRole'] == 2) : //deliverman
             $curOrder = App::get('database')->selectBy('Orders', ['Deliveryman' => UsersController::isConnected()]);
             if ($curOrder) :
