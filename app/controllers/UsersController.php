@@ -3,7 +3,6 @@
 namespace App\Controllers;
 
 use App\Core\App;
-use App\Core\Request;
 use App\Core\Router;
 use Auth;
 use DateInterval;
@@ -329,11 +328,11 @@ class UsersController
             UsersController::isConnected()
         );
         if ($user['CurrentRole'] == 1) : //consumer
-            $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()])[0];
-            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Order' => $order]);
+            $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()]);
+            Router::respond(1, 200, 'OK', ['Notifications' => $notifs, 'Orders' => $order]);
         elseif ($user['CurrentRole'] == 3) : //provider
 
-            $ordered = App::get('database')->selectBy('Orders', ['Provider' => UsersController::isConnected()]);
+            $ordered = App::get('database')->selectBy('Orders', ['Provider' => UsersController::isConnected(), 'Status' => 'Buying']);
             if ($ordered) :
                 $orderedItems = [];
                 foreach ($ordered as $ord) :
@@ -422,5 +421,10 @@ class UsersController
         else :
             Router::respond(0, 400, 'No providers in your area!');
         endif;
+    }
+
+    public function charge()
+    { //for demonstration purposes only 
+        App::get('database')->modify('Users', ['ECoin' => 1820], 'UserID', UsersController::isConnected());
     }
 }

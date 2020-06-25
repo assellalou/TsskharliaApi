@@ -2,7 +2,7 @@
 
 namespace App\Core;
 
-class Helpers
+class Helpers //I may use these in the future !
 {
     public static function redirect($path)
     {

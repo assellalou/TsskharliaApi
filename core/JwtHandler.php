@@ -3,7 +3,7 @@
 use \Firebase\JWT\JWT;
 use App\Core\App;
 
-class JwtHandler
+class JwtHandler //thanks JWT tho
 {
     protected $jwt_secret;
     protected $token;

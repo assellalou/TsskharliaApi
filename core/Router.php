@@ -2,7 +2,6 @@
 
 namespace App\Core;
 
-use Exception;
 
 class Router
 {
@@ -50,7 +49,7 @@ class Router
 
     public static function respond($success, $status, $message, $extras = [])
     {
-        Log::URITracker($status);
+        Log::URITracker($status, $message);
         echo json_encode(
             [
                 'success' => $success,

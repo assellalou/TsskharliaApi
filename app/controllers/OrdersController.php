@@ -228,7 +228,7 @@ class OrdersController
     {
         if (UsersController::hasOrder()) :
             $order = App::get('database')->selectBy('Orders', ['Consumer' => UsersController::isConnected()])[0];
-            $DeliveryPayment = ($order['Tax'] * 55) / 100;
+            $DeliveryPayment = ($order['Tax'] * 60) / 100;
             if ($order['Status'] == 'Delivering') :
                 App::get('database')->modify('Orders', [
                     'Status' => 'Delivered',
@@ -242,7 +242,7 @@ class OrdersController
                 ]);
                 App::get('database')->insert('Notifications', [
                     'ToNotify' => $order['Deliveryman'],
-                    'NotifText' => 'Thanks for getting the job done. your money will be there soon!'
+                    'NotifText' => 'Thanks for getting the job done. Your 60% portion will be there soon!'
                 ]);
                 $this->pay(
                     $order['OrderID'],
@@ -253,6 +253,7 @@ class OrdersController
                 if (isset($this->data['stars']) && !empty($this->data['stars']) && is_numeric($this->data['stars'])) :
                     $this->rate($order['Deliveryman'], UsersController::isConnected(), $this->data['stars']);
                 endif;
+                Router::respond(0, 401, 'Done, We hope you like the service !!');
             elseif ($order['Status'] == 'Delivered') :
                 Router::respond(0, 401, 'Your order is delivered already!');
             else :
@@ -275,7 +276,7 @@ class OrdersController
     {
         $currentUser = App::get('database')->selectBy('Users', ['UserID' => UsersController::isConnected()])[0];
         if ($currentUser != 1) :
-            $orders = App::get('database')->selectBy('Orders', ['City' => $currentUser['City']]);
+            $orders = App::get('database')->selectBy('Orders', ['City' => $currentUser['City'], 'Status' => 'Published']);
             $CityOrders = [];
             foreach ($orders as $order) :
                 $CityOrders[$order['OrderID']] = $this->getOrder($order['OrderID']);
